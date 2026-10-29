@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="A free interactive tool to build your Asian Cup 2027 predictions: enter the group-stage results, pick the winners through to the champion, and save your prediction card.">
+<meta property="og:title" content="Asian Cup 2027 Predictor">
+<meta property="og:description" content="Build your Asian Cup 2027 predictions and share them with your friends. An independent, unofficial companion to the book “Your Guide to the Asian Cup 2027”.">
+<meta property="og:locale" content="en_US">
+<style>html{-webkit-text-size-adjust:100%}body{margin:0}</style>
+<title>Asian Cup 2027 Predictor</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap">
+<style>
+/* Layout: sticky tab bar; group cards in a responsive grid; knockout as stacked round panels. */
+:root{--bg:#0b1730;--surface:#122448;--surface2:#183060;--line:#27427a;--fg:#f2efe6;--muted:#a9b4cf;--gold:#e3bc4b;--gold-ink:#1a1405;--ok:#58c28a;--warn:#e58c5a;
+ --display:"Inter","Segoe UI",Arial,sans-serif;--body:"Inter","Segoe UI",Arial,sans-serif;color-scheme:dark}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f2e7;--surface:#ffffff;--surface2:#efe9d8;--line:#d9cfb4;--fg:#0d1b35;--muted:#5b6785;--gold:#8f6a0c;--gold-ink:#fff8e0;--ok:#1c7a4c;--warn:#b35a22;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f2e7;--surface:#ffffff;--surface2:#efe9d8;--line:#d9cfb4;--fg:#0d1b35;--muted:#5b6785;--gold:#8f6a0c;--gold-ink:#fff8e0;--ok:#1c7a4c;--warn:#b35a22;color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.6;padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1100px;margin:0 auto}
+header{padding:28px 0 12px}
+.eyebrow{font-size:13px;letter-spacing:.04em;color:var(--gold);font-weight:600}
+h1{font-family:var(--display);font-size:clamp(30px,6vw,48px);line-height:1.2;margin:4px 0 8px;text-wrap:balance}
+.lead{color:var(--muted);max-width:60ch;margin:0}
+.bars{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px}
+.bar{flex:1 1 220px;min-width:0}
+.bar b{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px}
+.track{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
+.fill{height:100%;background:var(--gold);width:0;transition:width .25s}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);margin-top:12px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:8px 18px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-inline-start:auto}
+.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:7px 14px;border-radius:8px;cursor:pointer}
+.btn.pri{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:600}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.nav-in{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+section.pane{padding-top:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,480px),1fr));gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.card h2{font-family:var(--display);font-size:22px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline}
+.card h2 small{font-family:var(--body);font-size:13px;color:var(--muted);font-weight:400}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:14px}
+th,td{padding:5px 6px;text-align:center;white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:12px;border-bottom:1px solid var(--line)}
+td.tn{text-align:start;font-weight:600}
+tr.q1 td:first-child,tr.q2 td:first-child{box-shadow:inset -4px 0 0 var(--ok)}
+tr.q3 td:first-child{box-shadow:inset -4px 0 0 var(--warn)}
+td.pts{font-weight:800;color:var(--gold)}
+.ms{margin-top:14px;display:flex;flex-direction:column;gap:2px}
+.m{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+.m .t{font-weight:600;font-size:15px;min-width:0;overflow-wrap:anywhere}
+.m .t.a{text-align:end}
+.sc{display:flex;gap:4px;align-items:center;direction:ltr}
+.sc input{width:44px;height:40px;text-align:center;font:inherit;font-size:18px;font-weight:700;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--fg);font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.sc input::-webkit-outer-spin-button,.sc input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.meta{grid-column:1/-1;font-size:12px;color:var(--muted);text-align:center;margin-top:-4px}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.thirds{margin-top:24px}
+.round{margin-bottom:28px}
+.round h3{font-family:var(--display);font-size:20px;margin:0 0 4px}
+.round .when{color:var(--muted);font-size:13px;margin:0 0 10px}
+.kg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:12px}
+.km{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.km .id{font-size:12px;color:var(--muted)}
+.tb{font:inherit;font-weight:600;text-align:start;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer;min-width:0;overflow-wrap:anywhere}
+.tb[disabled]{cursor:default;color:var(--muted);font-weight:400}
+.tb.won{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.tb.out{opacity:.55;text-decoration:line-through}
+.final .km{border-color:var(--gold);border-width:2px}
+.gate{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:16px;margin-bottom:20px}
+.cardwrap{display:grid;grid-template-columns:minmax(0,420px) 1fr;gap:24px;align-items:start}
+@media (max-width:760px){.cardwrap{grid-template-columns:1fr}}
+#cardimg{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block}
+.sum{display:flex;flex-direction:column;gap:12px}
+.sum .btn{align-self:flex-start}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+footer p{margin:0 0 8px;max-width:75ch}
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));inset-inline:16px;margin:auto;width:fit-content;background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:8px;font-size:14px;z-index:20}
+@media (prefers-reduced-motion:reduce){.fill{transition:none}}
+</style>
+</head>
+<body>
+<noscript><p style="padding:16px;margin:0;background:#e3bc4b;color:#1a1405;font-family:sans-serif;text-align:center" dir="ltr">This tool needs JavaScript. Open the page in a browser such as Chrome or Safari, not from a file preview or inside a messaging app.</p></noscript>
+<div class="wrap" dir="ltr" lang="en">
+<header>
+ <div class="eyebrow">Companion to the book “Your Guide to the Asian Cup 2027”</div>
+ <h1>Asian Cup 2027 Predictor</h1>
+ <p class="lead">Enter the score of every group-stage match and the table will sort itself and work out the qualifiers and the four best third-placed teams. Then pick the winner of each knockout match until you know your champion.</p>
+ <div class="bars">
+  <div class="bar"><b><span>Group matches</span><span id="pg1">0 / 36</span></b><div class="track"><div class="fill" id="f1"></div></div></div>
+  <div class="bar"><b><span>Knockout rounds</span><span id="pg2">0 / 15</span></b><div class="track"><div class="fill" id="f2"></div></div></div>
+ </div>
+</header>
+<nav><div class="nav-in">
+ <div class="tabs" role="tablist">
+  <button class="tab" role="tab" id="t-g" aria-selected="true" data-p="g">Groups</button>
+  <button class="tab" role="tab" id="t-k" aria-selected="false" data-p="k">Knockout Rounds</button>
+  <button class="tab" role="tab" id="t-c" aria-selected="false" data-p="c">My Card</button>
+ </div>
+ <div class="tools">
+  <button class="btn" id="rndG">Fill groups randomly</button>
+  <button class="btn" id="clr">Clear all</button>
+ </div>
+</div></nav>
+
+<section class="pane" id="p-g">
+ <div class="grid" id="groups"></div>
+ <div class="card thirds">
+  <h2>Third-Placed Teams Ranking <small id="thState"></small></h2>
+  <div class="tw"><table id="thTable"></table></div>
+  <p class="note">The four best of the six third-placed teams qualify for the round of 16. Ranked by points, then goal difference, then goals scored.</p>
+ </div>
+</section>
+
+<section class="pane" id="p-k" hidden>
+ <div class="gate" id="gate"></div>
+ <div id="ko"></div>
+</section>
+
+<section class="pane" id="p-c" hidden>
+ <div class="cardwrap">
+  <img id="cardimg" alt="My Asian Cup 2027 prediction card">
+  <div class="sum">
+   <div id="sumTxt" class="lead"></div>
+   <button class="btn pri" id="saveImg">Save card as image</button>
+   <button class="btn" id="copyTxt">Copy predictions as text</button>
+  </div>
+ </div>
+</section>
+
+<footer>
+ <p>An independent, unofficial tool accompanying the book “Your Guide to the Asian Cup 2027”. It is not affiliated with the Asian Football Confederation, the Saudi Arabian Football Federation or the organising committee.</p>
+ <p>Matches, venues and times are as published on 21 October 2026, in Mecca time, and may change. Knockout dates are ranges for each round.</p>
+ <p>On equal points: head-to-head (points, goal difference, goals), then overall goal difference, then goals scored. A complete tie is settled by fair play or a draw, and is ordered alphabetically here. These are the rules of previous editions, and the published tournament regulations remain the reference.</p>
+ <p>The allocation of third-placed teams in the round of 16 is taken from the tournament schedule published on <a href="https://en.wikipedia.org/wiki/2027_AFC_Asian_Cup" target="_blank" rel="noopener" style="color:var(--gold)">Wikipedia</a>.</p>
+ <p>Your predictions are saved in your browser only.</p>
+</footer>
+</div>
+<div class="toast" id="toast" hidden dir="ltr"></div>
+
+<script>
+const GR={A:['Saudi Arabia','Kuwait','Oman','Palestine'],B:['Uzbekistan','Bahrain','North Korea','Jordan'],C:['Iran','Syria','Kyrgyzstan','China'],D:['Australia','Tajikistan','Iraq','Singapore'],E:['South Korea','UAE','Vietnam','Yemen'],F:['Japan','Qatar','Thailand','Indonesia']};
+const GL={A:'A',B:'B',C:'C',D:'D',E:'E',F:'F'};
+const V={'KF': 'King Fahd International Stadium · Riyadh', 'KS': 'King Saud University Stadium · Riyadh', 'IM': 'Imam Mohammad bin Saud University Stadium · Riyadh', 'KA': 'Kingdom Arena · Riyadh', 'SH': 'Al-Shabab Club Stadium · Riyadh', 'AB': 'King Abdullah Sports City Stadium · Jeddah', 'AF': 'Prince Abdullah Al-Faisal Sports City Stadium · Jeddah', 'AR': 'Aramco Stadium · Khobar'};
+// [group, home, away, day, time, venue]
+const M=[
+['A','Saudi Arabia','Palestine','Thursday 7 January','8:00 PM','KF'],
+['B','Bahrain','North Korea','Friday 8 January','1:30 PM','IM'],['A','Kuwait','Oman','Friday 8 January','4:30 PM','KS'],['B','Uzbekistan','Jordan','Friday 8 January','7:30 PM','AB'],
+['D','Australia','Singapore','Saturday 9 January','1:30 PM','AR'],['C','Iran','China','Saturday 9 January','4:30 PM','KA'],['C','Syria','Kyrgyzstan','Saturday 9 January','7:30 PM','KF'],
+['E','South Korea','Yemen','Sunday 10 January','1:30 PM','AF'],['D','Tajikistan','Iraq','Sunday 10 January','4:30 PM','SH'],
+['F','Japan','Indonesia','Monday 11 January','1:30 PM','AF'],['E','UAE','Vietnam','Monday 11 January','4:30 PM','KS'],['F','Qatar','Thailand','Monday 11 January','7:30 PM','IM'],
+['A','Palestine','Kuwait','Tuesday 12 January','1:30 PM','AR'],['B','North Korea','Uzbekistan','Tuesday 12 January','4:30 PM','KA'],['A','Oman','Saudi Arabia','Tuesday 12 January','7:30 PM','KF'],
+['B','Jordan','Bahrain','Wednesday 13 January','4:30 PM','AB'],['C','Kyrgyzstan','Iran','Wednesday 13 January','7:30 PM','SH'],
+['D','Iraq','Australia','Thursday 14 January','1:30 PM','KS'],['C','China','Syria','Thursday 14 January','4:30 PM','AF'],['D','Singapore','Tajikistan','Thursday 14 January','7:30 PM','IM'],
+['E','Vietnam','South Korea','Friday 15 January','1:30 PM','KA'],['E','Yemen','UAE','Friday 15 January','7:30 PM','KF'],
+['F','Thailand','Japan','Saturday 16 January','1:30 PM','SH'],['F','Indonesia','Qatar','Saturday 16 January','7:30 PM','AR'],
+['B','North Korea','Jordan','Sunday 17 January','4:30 PM','IM'],['B','Uzbekistan','Bahrain','Sunday 17 January','4:30 PM','AF'],['A','Oman','Palestine','Sunday 17 January','8:00 PM','KS'],['A','Saudi Arabia','Kuwait','Sunday 17 January','8:00 PM','AB'],
+['C','Iran','Syria','Monday 18 January','4:30 PM','KF'],['C','Kyrgyzstan','China','Monday 18 January','4:30 PM','KA'],
+['D','Australia','Tajikistan','Tuesday 19 January','1:30 PM','SH'],['D','Iraq','Singapore','Tuesday 19 January','1:30 PM','AR'],
+['F','Japan','Qatar','Wednesday 20 January','1:30 PM','IM'],['F','Thailand','Indonesia','Wednesday 20 January','1:30 PM','AB'],['E','South Korea','UAE','Wednesday 20 January','4:30 PM','KS'],['E','Vietnam','Yemen','Wednesday 20 January','4:30 PM','AF']
+];
+// third-placed allocation: key = four groups, value = group of the third facing 1A,1B,1C,1D
+const ALLOC={ABCD:'CDAB',ABCE:'CABE',ABCF:'CABF',ABDE:'DABE',ABDF:'DABF',ABEF:'EABF',ACDE:'CDAE',ACDF:'CDAF',ACEF:'CAFE',ADEF:'DAFE',BCDE:'CDBE',BCDF:'CDBF',BCEF:'ECBF',BDEF:'EDBF',CDEF:'CDFE'};
+const R16={37:['2A','2C'],38:['1B','T1B'],39:['1D','T1D'],40:['1A','T1A'],41:['1F','2E'],42:['2B','2F'],43:['1E','2D'],44:['1C','T1C']};
+const LATER={45:['W37','W39'],46:['W38','W41'],47:['W44','W43'],48:['W40','W42'],49:['W45','W46'],50:['W47','W48'],51:['W49','W50']};
+const THIRD_OF={T1A:'3rd (C/D/E)',T1B:'3rd (A/C/D)',T1C:'3rd (A/B/F)',T1D:'3rd (B/E/F)'};
+const ROUNDS=[['Round of 16','22 – 25 January',[37,38,39,40,41,42,43,44]],['Quarter-finals','28 – 29 January',[45,46,47,48]],['Semi-finals','1 February (Match 49) · 2 February (Match 50)',[49,50]],['The Final','Friday 5 February · 8:00 PM · King Fahd International Stadium, Riyadh',[51]]];
+const KEY='afc27-en-predictions-v1';
+let S={scores:Array(36).fill(null),ko:{}};
+try{const r=JSON.parse(localStorage.getItem(KEY)||'null');if(r&&Array.isArray(r.scores)&&r.scores.length===36){S.scores=r.scores;S.ko=r.ko||{}}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+
+/* ---------- standings ---------- */
+function stats(teams,played){const s={};teams.forEach(t=>s[t]={t,pl:0,w:0,d:0,l:0,gf:0,ga:0,p:0,gd:0});
+ for(const m of played){if(!(m.h in s&&m.a in s))continue;const H=s[m.h],A=s[m.a];H.pl++;A.pl++;H.gf+=m.hg;H.ga+=m.ag;A.gf+=m.ag;A.ga+=m.hg;
+  if(m.hg>m.ag){H.w++;H.p+=3;A.l++}else if(m.hg<m.ag){A.w++;A.p+=3;H.l++}else{H.d++;A.d++;H.p++;A.p++}}
+ teams.forEach(t=>s[t].gd=s[t].gf-s[t].ga);return s}
+function runs(arr,key){const out=[];for(const x of arr){const k=key(x);if(out.length&&out[out.length-1].k===k)out[out.length-1].items.push(x);else out.push({k,items:[x]})}return out.map(r=>r.items)}
+function rankGroup(g,played){const teams=GR[g],all=stats(teams,played);
+ const alpha=(a,b)=>a.localeCompare(b,'en');
+ function resolve(run){if(run.length===1)return run;
+  const h=stats(run,played.filter(m=>run.includes(m.h)&&run.includes(m.a)));
+  const sorted=[...run].sort((a,b)=>h[b].p-h[a].p||h[b].gd-h[a].gd||h[b].gf-h[a].gf||alpha(a,b));
+  const rs=runs(sorted,t=>h[t].p+'|'+h[t].gd+'|'+h[t].gf);
+  if(rs.length===1){return [...run].sort((a,b)=>all[b].gd-all[a].gd||all[b].gf-all[a].gf||alpha(a,b))}
+  return rs.flatMap(resolve)}
+ const byPts=[...teams].sort((a,b)=>all[b].p-all[a].p||alpha(a,b));
+ const ordered=runs(byPts,t=>all[t].p).flatMap(resolve);
+ return ordered.map(t=>all[t])}
+function groupPlayed(g){const out=[];M.forEach((m,i)=>{if(m[0]===g&&S.scores[i])out.push({h:m[1],a:m[2],hg:S.scores[i][0],ag:S.scores[i][1]})});return out}
+function groupDone(g){return M.every((m,i)=>m[0]!==g||S.scores[i])}
+const GS=()=>Object.keys(GR);
+const allDone=()=>GS().every(groupDone);
+function thirds(){const rows=GS().map(g=>{const t=rankGroup(g,groupPlayed(g))[2];return{g,...t}});
+ return rows.sort((a,b)=>b.p-a.p||b.gd-a.gd||b.gf-a.gf||a.g.localeCompare(b.g))}
+
+/* ---------- bracket ---------- */
+function resolveBracket(){const ok=allDone();const rk={};GS().forEach(g=>{rk[g]=rankGroup(g,groupPlayed(g))});
+ let alloc=null,qual=[];if(ok){qual=thirds().slice(0,4).map(r=>r.g);alloc=ALLOC[[...qual].sort().join('')]}
+ const slot=s=>{if(s[0]==='1'||s[0]==='2'){const g=s[1],done=groupDone(g);return{team:done?rk[g][+s[0]-1].t:null,label:(s[0]==='1'?'1st ':'2nd ')+GL[g]}}
+  if(s[0]==='T'){if(!alloc)return{team:null,label:THIRD_OF[s]};const idx='ABCD'.indexOf(s[2]);const g=alloc[idx];return{team:rk[g][2].t,label:'3rd '+GL[g]}}};
+ const teams={},win={};
+ for(const id in R16)teams[id]=R16[id].map(slot);
+ const decide=id=>{const t=teams[id].map(x=>x.team);const p=S.ko[id];win[id]=(p&&t.includes(p))?p:null};
+ for(const id in R16)decide(id);
+ for(const id in LATER){teams[id]=LATER[id].map(s=>{const w=win[s.slice(1)];return{team:w,label:'Winner '+s.slice(1)}});decide(id)}
+ return{teams,win,qual,rk}}
+
+/* ---------- build DOM ---------- */
+function buildGroups(){const box=$('groups');
+ GS().forEach(g=>{const c=document.createElement('div');c.className='card';
+  let ms='';M.forEach((m,i)=>{if(m[0]!==g)return;const sc=S.scores[i]||['',''];
+   ms+=`<div class="m"><span class="t">${m[1]}</span><span class="sc"><input id="s${i}h" data-i="${i}" data-s="0" type="number" inputmode="numeric" min="0" max="30" value="${sc[0]}" aria-label="${m[1]} goals"><span>–</span><input id="s${i}a" data-i="${i}" data-s="1" type="number" inputmode="numeric" min="0" max="30" value="${sc[1]}" aria-label="${m[2]} goals"></span><span class="t a">${m[2]}</span><span class="meta">${m[3]} · ${m[4]} · ${V[m[5]]}</span></div>`});
+  c.innerHTML=`<h2>Group ${GL[g]}<small id="gs${g}"></small></h2><div class="tw"><table id="gt${g}"></table></div><div class="ms">${ms}</div>`;box.appendChild(c)});
+ box.addEventListener('input',e=>{const el=e.target;if(!el.dataset||el.dataset.i===undefined)return;const i=+el.dataset.i;
+  const a=$('s'+i+'h').value,b=$('s'+i+'a').value;const ok=v=>/^\d{1,2}$/.test(v);
+  S.scores[i]=(ok(a)&&ok(b))?[+a,+b]:null;save();update()})}
+function renderGroup(g){const rows=rankGroup(g,groupPlayed(g));const done=groupDone(g);const th=thirds();const t3=allDone()?th.slice(0,4).map(r=>r.g):[];
+ let h='<tr><th></th><th style="text-align:start">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr>';
+ rows.forEach((r,i)=>{const cls=done?(i<2?'q1':(i===2?(t3.includes(g)?'q3':''):'')):'';
+  h+=`<tr class="${cls}"><td>${i+1}</td><td class="tn">${r.t}</td><td>${r.pl}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd>0?'+'+r.gd:r.gd}</td><td class="pts">${r.p}</td></tr>`});
+ $('gt'+g).innerHTML=h;const n=M.filter((m,i)=>m[0]===g&&S.scores[i]).length;$('gs'+g).textContent=n===6?'Complete':n+' / 6 matches'}
+function renderThirds(){const th=thirds();const done=allDone();$('thState').textContent=done?'Final':'Provisional until all groups are complete';
+ let h='<tr><th></th><th style="text-align:start">Team</th><th>Group</th><th>P</th><th>GD</th><th>GF</th><th>Pts</th></tr>';
+ th.forEach((r,i)=>{h+=`<tr class="${done&&i<4?'q1':''}"><td>${i+1}</td><td class="tn">${r.t}</td><td>${GL[r.g]}</td><td>${r.pl}</td><td>${r.gd>0?'+'+r.gd:r.gd}</td><td>${r.gf}</td><td class="pts">${r.p}</td></tr>`});
+ $('thTable').innerHTML=h}
+function renderKO(){const B=resolveBracket();const done=allDone();const nG=S.scores.filter(Boolean).length;
+ $('gate').hidden=done;$('gate').innerHTML=done?'':`Complete the group-stage results (${nG} of 36) to see team names in the round of 16. You can use the “Fill groups randomly” button to try it out.`;
+ let h='';ROUNDS.forEach(([name,when,ids])=>{h+=`<div class="round ${ids[0]===51?'final':''}"><h3>${name}</h3><p class="when">${when}</p><div class="kg">`;
+  ids.forEach(id=>{const t=B.teams[id],w=B.win[id];h+=`<div class="km"><span class="id">Match ${id}</span>`;
+   t.forEach((x,k)=>{const can=!!x.team;const cls=w?(w===x.team?'tb won':'tb out'):'tb';
+    h+=`<button class="${cls}" data-m="${id}" data-t="${can?x.team:''}" ${can?'':'disabled'}>${can?x.team:x.label}</button>`});
+   h+='</div>'});h+='</div></div>'});
+ $('ko').innerHTML=h}
+$('ko').addEventListener('click',e=>{const b=e.target.closest('button.tb');if(!b||b.disabled)return;const id=b.dataset.m,t=b.dataset.t;
+ if(S.ko[id]===t)delete S.ko[id];else S.ko[id]=t;
+ // drop picks that no longer fit the bracket
+ const B=resolveBracket();for(const k in S.ko){if(B.win[k]!==S.ko[k])delete S.ko[k]}
+ save();update()});
+
+function koCount(){const B=resolveBracket();return Object.values(B.win).filter(Boolean).length}
+function summary(){const B=resolveBracket();const done=allDone();const champ=B.win[51];
+ const fin=B.teams[51].map(x=>x.team);const sf=[...B.teams[49],...B.teams[50]].map(x=>x.team).filter(Boolean);
+ const winners=done?GS().map(g=>GL[g]+': '+B.rk[g][0].t):[];return{B,done,champ,fin,sf,winners}}
+function renderSum(){const s=summary();const lines=[];
+ if(s.champ)lines.push('My Asian Cup 2027 champion: '+s.champ);
+ if(s.fin[0]&&s.fin[1])lines.push('Final: '+s.fin[0]+' × '+s.fin[1]);
+ if(s.sf.length===4)lines.push('Final four: '+s.sf.join(', '));
+ if(s.done)lines.push('Group winners: '+s.winners.join(' · '));
+ $('sumTxt').innerHTML=lines.length?lines.map(l=>'<div>'+l+'</div>').join(''):'Complete your predictions to see your card here.';
+ $('saveImg').disabled=!s.champ;$('copyTxt').disabled=!lines.length;
+ drawCard(s)}
+
+/* ---------- share card ---------- */
+const CV=document.createElement('canvas');CV.width=1080;CV.height=1350;
+function drawCard(s){const c=CV.getContext('2d');c.direction='ltr';c.textAlign='center';
+ const g=c.createRadialGradient(540,500,80,540,600,1000);g.addColorStop(0,'#1a3566');g.addColorStop(1,'#080f1e');c.fillStyle=g;c.fillRect(0,0,1080,1350);
+ c.strokeStyle='#c8a84b';c.lineWidth=4;c.strokeRect(36,36,1008,1278);
+ const F=(px,w)=>`${w||700} ${px}px Inter, "Segoe UI", Arial, sans-serif`;
+ c.fillStyle='#c8a84b';c.font=F(34,600);c.fillText('My Asian Cup 2027 Predictions',540,130);
+ c.fillStyle='#fff';c.font=F(46,800);c.fillText('Tournament Champion',540,260);
+ if(s.champ){c.fillStyle='#FFD700';c.font=F(s.champ.length>10?120:150,800);c.fillText(s.champ,540,430)}
+ else{c.fillStyle='#8a97b8';c.font=F(60,600);c.fillText('Complete your bracket',540,420)}
+ c.fillStyle='#c8a84b';c.fillRect(300,490,480,3);
+ c.fillStyle='#fff';c.font=F(40,700);c.fillText('The Final',540,580);
+ c.font=F(58,800);c.fillStyle='#f2efe6';
+ c.fillText(s.fin[0]&&s.fin[1]?s.fin[0]+'  ×  '+s.fin[1]:'—',540,670);
+ c.fillStyle='#fff';c.font=F(40,700);c.fillText('Final Four',540,790);
+ c.font=F(44,600);c.fillStyle='#f2efe6';
+ if(s.sf.length===4){c.fillText(s.sf[0]+'  ·  '+s.sf[1],540,860);c.fillText(s.sf[2]+'  ·  '+s.sf[3],540,925)}else c.fillText('—',540,860);
+ if(s.done){c.fillStyle='#fff';c.font=F(34,700);c.fillText('Group Winners',540,1030);c.fillStyle='#f2efe6';c.font=F(30,600);
+  const w=s.winners;c.fillText(w.slice(0,3).map(x=>x.split(': ')[1]).join('  ·  '),540,1085);c.fillText(w.slice(3).map(x=>x.split(': ')[1]).join('  ·  '),540,1135)}
+ c.fillStyle='#c8a84b';c.font=F(30,600);c.fillText('Companion to “Your Guide to the Asian Cup 2027” · Yaser Maadat',540,1235);
+ c.fillStyle='#8a97b8';c.font=F(24,400);c.fillText('An independent, unofficial tool',540,1280);
+ try{$('cardimg').src=CV.toDataURL('image/png')}catch(e){}}
+function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600)}
+$('saveImg').onclick=async()=>{const blob=await new Promise(r=>CV.toBlob(r,'image/png'));const fn='my_asian_cup_2027_predictions.png';
+ try{const d=(typeof claude!=='undefined'&&claude.use)?await claude.use('downloads'):null;
+  if(d){await d.save({filename:fn,data:blob});return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)
+ }catch(e){if(!e||e.code!=='declined')toast('Could not save. Press and hold the image to save it.')}};
+$('copyTxt').onclick=async()=>{const s=summary();const L=['My Asian Cup 2027 predictions'];if(s.champ)L.push('Champion: '+s.champ);if(s.fin[0]&&s.fin[1])L.push('Final: '+s.fin[0]+' × '+s.fin[1]);if(s.sf.length===4)L.push('Final four: '+s.sf.join(', '));L.push('From the book “Your Guide to the Asian Cup 2027” by Yaser Maadat (an independent, unofficial book)');
+ try{await navigator.clipboard.writeText(L.join('\n'));toast('Copied')}catch(e){toast('Could not copy automatically')}};
+
+/* ---------- controls ---------- */
+function update(){GS().forEach(renderGroup);renderThirds();const n=S.scores.filter(Boolean).length,k=koCount();
+ $('pg1').textContent=n+' / 36';$('f1').style.width=(n/36*100)+'%';$('pg2').textContent=k+' / 15';$('f2').style.width=(k/15*100)+'%';
+ renderKO();renderSum()}
+function setScore(i,a,b){S.scores[i]=[a,b];$('s'+i+'h').value=a;$('s'+i+'a').value=b}
+const pickG=()=>{const w=[0,0,0,1,1,1,1,2,2,2,3,4];return w[Math.floor(Math.random()*w.length)]};
+$('rndG').onclick=()=>{M.forEach((m,i)=>{if(!S.scores[i])setScore(i,pickG(),pickG())});save();update();toast('Empty matches filled at random')};
+let clrArm=0;$('clr').onclick=()=>{if(!clrArm){clrArm=1;$('clr').textContent='Press to confirm';setTimeout(()=>{clrArm=0;$('clr').textContent='Clear all'},3000);return}
+ clrArm=0;$('clr').textContent='Clear all';S={scores:Array(36).fill(null),ko:{}};M.forEach((m,i)=>{$('s'+i+'h').value='';$('s'+i+'a').value=''});save();update()};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',x===b));
+ ['g','k','c'].forEach(p=>$('p-'+p).hidden=p!==b.dataset.p);$('rndG').hidden=b.dataset.p!=='g';window.scrollTo({top:0})});
+buildGroups();update();
+</script>
+</body>
+</html>
